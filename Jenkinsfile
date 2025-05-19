@@ -7,7 +7,7 @@ pipeline {
                 git(
                     url: 'https://github.com/Dikaaff/curd-pertanian',
                     branch: 'development',
-                    credentialsId: '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' // ← GANTI DENGAN ID KREDENSIAL KAMU
+                    credentialsId: 'github-token' // ← GANTI DENGAN ID KREDENSIAL KAMU
                 )
             }
         }
