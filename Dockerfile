@@ -1,9 +1,3 @@
-FROM node:18
-
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-
-EXPOSE 3000
-CMD ["npm", "start"]
+FROM php:8.1-apache
+COPY index.php /var/www/html/
+EXPOSE 80
