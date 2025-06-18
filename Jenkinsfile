@@ -1,34 +1,67 @@
 pipeline {
     agent any
+
+    environment {
+        DOCKER_IMAGE = "dikaaff/pertanian-app:latest"
+    }
+
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                git 'https://github.com/cravengithub/node-app.git'
+                git(
+                    url: 'https://github.com/Dikaaff/curd-pertanian',
+                    branch: 'development',
+                    credentialsId: 'github-token' // ← Ganti dengan ID kredensial GitHub kamu
+                )
             }
         }
-        stage('Build') {
+
+        stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                sh 'echo "Installing dependencies..."'
+                // sh 'composer install' atau sejenisnya
             }
         }
-        stage('Test') {
+
+        stage('Run Unit Tests') {
             steps {
-                sh 'npm test' // Asumsi sudah ada test
+                sh 'echo "Running tests..."'
+                // sh 'vendor/bin/phpunit' atau sejenisnya
             }
-            post {
-                success {
-                    echo 'Tes berhasil!'
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    dockerImage = docker.build("${DOCKER_IMAGE}")
                 }
-                failure {
-                    echo 'Tes gagal!'
+            }
+        }
+
+        stage('Push Docker Image to Docker Hub') {
+            steps {
+                withDockerRegistry([ credentialsId: 'dockerhub-credentials', url: '' ]) {
+                    script {
+                        dockerImage.push()
+                    }
                 }
             }
         }
-        stage('Deploy') {
+
+        stage('Deploy to Kubernetes') {
             steps {
-                sh 'echo "Menjalankan aplikasi..."'
-                sh 'node app.js &'
+                sh 'kubectl apply -f deployment.yaml'
+                sh 'kubectl apply -f service.yaml'
             }
+        }
+    }
+
+    post {
+        failure {
+            echo '❌ Build or Deployment Failed'
+        }
+        success {
+            echo '✅ CI/CD Pipeline Success! Deployed to Staging.'
         }
     }
 }
